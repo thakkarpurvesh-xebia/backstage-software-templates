@@ -37,4 +37,4 @@ jobs:
     steps:
       - name: Trigger Jenkins Job
         run: |
-          curl -X POST "http://localhost:8080/job/react-app-deploy/buildWithParameters?token=${{ '${{ secrets.JENKINS_TOKEN }}' }}&APP_NAME=${{values.app_name}}&COMMIT_ID=${{needs.ci.outputs.commit_id}}"
+          curl -X POST "http://localhost:8080/job/react-app-deploy/buildWithParameters?token=${{ '${{ secrets.JENKINS_TOKEN }}' }}&APP_NAME=${{values.app_name}}&COMMIT_ID=${{ '${{needs.ci.outputs.commit_id}}' }}"
