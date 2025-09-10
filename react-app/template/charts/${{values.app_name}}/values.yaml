@@ -1,8 +1,8 @@
 replicaCount: 1
 image:
-  repository: thakkarpurvesh-xebia/${{values.app_name}}
+  repository: thakkarpurvesh-xebia-97/${{values.app_name}}
   pullPolicy: IfNotPresent
-  tag: ${{values.app_name}}-${{values.app_env}}-latest
+  tag: latest # Jenkins will update this to the correct commit/tag
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
@@ -17,7 +17,7 @@ podSecurityContext: {}
 securityContext: {}
 service:
   type: ClusterIP
-  port: 5000
+  port: 80 # React apps usually run on port 80
 ingress:
   enabled: true
   className: "nginx"
@@ -34,12 +34,12 @@ resources:
     memory: 50M
 livenessProbe:
   httpGet:
-    path: /api/v1/healthz
-    port: http
+    path: /
+    port: 80
 readinessProbe:
   httpGet:
-    path: /api/v1/healthz
-    port: http
+    path: /
+    port: 80
 autoscaling:
   enabled: false
   minReplicas: 1

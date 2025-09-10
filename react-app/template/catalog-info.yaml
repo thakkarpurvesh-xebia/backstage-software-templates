@@ -4,7 +4,7 @@ metadata:
   name: ${{values.app_name}}
   description: This is a sample React application named ${{values.app_name}}
   annotations:
-    github.com/project-slug: thakkarpurvesh-xebia/${{values.app_name}}
+    github.com/project-slug: thakkarpurvesh-xebia-97/${{values.app_name}}
     backstage.io/techdocs-ref: dir:.
 spec:
   type: website

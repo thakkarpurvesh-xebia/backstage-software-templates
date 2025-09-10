@@ -1,0 +1,45 @@
+pipeline {
+  agent any
+  parameters {
+    string(name: 'APP_NAME', defaultValue: 'react-app', description: 'Application name')
+    string(name: 'COMMIT_ID', defaultValue: 'latest', description: 'Docker image tag')
+    string(name: 'ENV', defaultValue: 'dev', description: 'Environment (dev, prod, etc.)')
+  }
+  environment {
+    CHART_PATH = "react-app/template/charts/${APP_NAME}"
+    VALUES_FILE = "${CHART_PATH}/values-${ENV}.yaml"
+  }
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
+    }
+    stage('Build React App') {
+      steps {
+        sh """
+          npm install
+          npm run build
+        """
+      }
+    }
+    stage('Update Helm Values') {
+      steps {
+        sh """
+          pip install yq
+          yq -Yi '.image.tag = "${COMMIT_ID}"' ${VALUES_FILE}
+        """
+        sh "git add ${VALUES_FILE}"
+        sh "git commit -m 'Update image tag to ${COMMIT_ID} for ${ENV}' || true"
+        sh "git push || true"
+      }
+    }
+    stage('Deploy to Kubernetes') {
+      steps {
+        sh """
+          helm upgrade --install ${APP_NAME} ${CHART_PATH} --namespace ${ENV} --values ${VALUES_FILE}
+        """
+      }
+    }
+  }
+}
