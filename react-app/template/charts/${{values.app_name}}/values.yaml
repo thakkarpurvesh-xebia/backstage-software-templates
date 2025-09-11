@@ -2,7 +2,7 @@ replicaCount: 1
 image:
   repository: thakkarpurvesh-xebia-97/${{values.app_name}}
   pullPolicy: IfNotPresent
-  tag: latest # Jenkins will update this to the correct commit/tag
+  tag: ${{values.app_name}}-${{values.app_env}}-latest
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
