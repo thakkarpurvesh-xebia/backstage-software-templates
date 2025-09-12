@@ -9,7 +9,7 @@ on:
 
 jobs:
   ci:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
 
       - name: Shorten commit id
@@ -33,8 +33,45 @@ jobs:
 
   cd:
     needs: ci
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
-      - name: Trigger Jenkins Job
+
+      - uses: actions/checkout@v3
+
+      - name: Modify values file
+        shell: bash
         run: |
-          curl -X POST "http://localhost:8080/job/react-app-deploy/buildWithParameters?token=${{ '${{ secrets.JENKINS_TOKEN }}' }}&APP_NAME=${{values.app_name}}&COMMIT_ID=${{ '${{needs.ci.outputs.commit_id}}' }}"
+          echo ${{needs.ci.outputs.commit_id}}
+          pip install yq
+          yq -Yi '.image.tag = "${{needs.ci.outputs.commit_id}}"' charts/${{values.app_name}}/values.yaml
+
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v9
+        with:
+          message: 'Updates values.yaml with commit ${{needs.ci.outputs.commit_id}}'
+
+      - name: Install argocd
+        shell: bash
+        run: |
+          curl -ksSL -o argocd https://argocd-server.argocd/download/argocd-linux-amd64
+          chmod +x argocd
+          sudo mv ./argocd /usr/local/bin/argocd
+
+      - name: Argocd app sync
+        shell: bash
+        run: |
+          argocd login argocd-server.argocd \
+            --insecure  \
+            --grpc-web \
+            --username admin \
+            --password  ${{ secrets.ARGOCD_PASSWORD }}
+          argocd app sync ${{values.app_name}}
+          argocd app wait ${{values.app_name}} --timeout 180
+
+  # cd:
+  #   needs: ci
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Trigger Jenkins Job
+  #       run: |
+  #         curl -X POST "http://localhost:8080/job/react-app-deploy/buildWithParameters?token=${{ '${{ secrets.JENKINS_TOKEN }}' }}&APP_NAME=${{values.app_name}}&COMMIT_ID=${{ '${{needs.ci.outputs.commit_id}}' }}"
