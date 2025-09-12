@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
       - name: ${{values.app_name}}
-        image: thakkarpurvesh-xebia-97/${{values.app_name}}:latest
+        image: thakkarpurvesh/${{values.app_name}}:latest
         ports:
         - containerPort: 80
